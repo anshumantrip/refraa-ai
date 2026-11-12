@@ -1,7 +1,8 @@
 import { useState } from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { Link, useOutletContext, useParams } from 'react-router-dom';
 import { api } from './api.js';
 import { Field, Form, Heading, Notice, ResourceState, roleNames, Submit, useAction, useResource } from './ui.jsx';
+import { RecruitingWorkspace, useRecruitingWorkspace } from './recruiting.jsx';
 
 function Requests({ base }) {
   const [revision, setRevision] = useState(0);
@@ -41,9 +42,13 @@ function Invite({ base }) {
 
 export function Dashboard() {
   const { id } = useParams();
+  const { user } = useOutletContext();
   const base = '/onboarding/organizations/' + id;
   const resource = useResource(base + '/dashboard');
   const data = resource.data;
+  if (['company_admin', 'recruiter'].includes(data?.membership.role)) {
+    return <RecruitingWorkspace data={data} user={user} />;
+  }
   return <>
     <Link className="back-link" to="/companies">← Company directory</Link>
     <ResourceState resource={resource} />
@@ -52,8 +57,16 @@ export function Dashboard() {
       <div className="panel dashboard-summary"><h2>Membership</h2><Notice message="Your company membership is verified." />
         <dl><div><dt>Account type</dt><dd>{roleNames[data.membership.role]}</dd></div><div><dt>Verification</dt><dd>{({ domain: 'Work email domain', invitation: 'Company invitation', approval: 'Administrator approval' })[data.membership.method]}</dd></div></dl>
       </div>
-      {data.membership.role === 'company_admin' && <div className="admin-grid"><Requests base={base} /><Invite base={base} /></div>}
     </>}
+  </>;
+}
+
+export function Employees() {
+  const { data } = useRecruitingWorkspace();
+  const base = '/onboarding/organizations/' + data.organization.id;
+  return <><Heading title="Employees" description="Manage access to your company workspace." />
+    {data.membership.role === 'company_admin' ? <div className="admin-grid"><Requests base={base} /><Invite base={base} /></div> :
+      <div className="panel muted">Company administrators manage requests and invitations.</div>}
   </>;
 }
 

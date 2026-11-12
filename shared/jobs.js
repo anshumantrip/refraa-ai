@@ -91,5 +91,6 @@ export const jobConfigSchema = z.strictObject(Object.assign({}, ...jobSteps.map(
   });
 
 export function newJob() {
-  return { ...jobConfigSchema.parse({ title: 'Untitled', description: 'Untitled' }), title: '', description: '' };
+  return Object.assign({ title: '', description: '' }, details.omit({ title: true, description: true }).parse({}),
+    ...jobSteps.slice(1).map(step => step.parse({})));
 }

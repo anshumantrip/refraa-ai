@@ -4,8 +4,11 @@ import { BrowserRouter, Link, Navigate, Outlet, Route, Routes, useLocation } fro
 import { api } from './api.js';
 import { Login, Register, Verify, Recovery } from './auth.jsx';
 import { AccountType, AddCompany, Complete, Directory, Membership, Profile } from './onboarding.jsx';
-import { Dashboard, Platform } from './dashboard.jsx';
-import { AuthLayout, Brand, Heading, Notice, PageFocus, useAction } from './ui.jsx';
+import { Dashboard, Employees, Platform } from './dashboard.jsx';
+import { RecruitingMetricsPage, RecruitingOverview, RecruitingSettings } from './recruiting.jsx';
+import { JobDetail, Jobs } from './jobs.jsx';
+import { JobWizard } from './job-wizard.jsx';
+import { AuthLayout, Brand, Heading, Notice, PageFocus, ResourceState, useAction, useResource } from './ui.jsx';
 import './style.css';
 
 function Workspace({ user, logout }) {
@@ -19,8 +22,17 @@ function Workspace({ user, logout }) {
       <div className="account"><span>{user.name}</span><button className="button secondary" type="button" disabled={action.busy}
         onClick={() => action.run(async () => { await api('/auth/logout', { method: 'POST' }); logout(); })}>Sign out</button></div>
     </div></header>
-    <main className="workspace-main"><Notice error={action.error} /><Outlet /></main>
+    <main className="workspace-main"><Notice error={action.error} /><Outlet context={{ user }} /></main>
   </>;
+}
+
+function WorkspaceHome() {
+  const resource = useResource('/onboarding/memberships');
+  const workspaces = resource.data?.items.filter(item => item.status === 'verified' &&
+    item.organization.active && item.organization.company.status === 'verified' && ['recruiter', 'company_admin'].includes(item.role));
+  if (!workspaces) return <><ResourceState resource={resource} />
+    {resource.error && <Link to="/companies">Open company directory</Link>}</>;
+  return <Navigate to={workspaces.length === 1 ? '/dashboard/' + workspaces[0].organization._id : '/companies'} replace />;
 }
 
 function App() {
@@ -41,21 +53,31 @@ function App() {
   const protectedWorkspace = user ? <Workspace user={user} logout={() => setSession({})} /> :
     <Navigate to="/login" replace state={{ from: location.pathname }} />;
   return <><PageFocus /><Routes>
-    <Route path="/" element={<Navigate to={user ? '/companies' : '/login'} replace />} />
-    <Route path="/login" element={user ? <Navigate to="/companies" replace /> :
+    <Route path="/login" element={user ? <Navigate to="/" replace /> :
       <AuthLayout><Login onLogin={user => setSession({ user })} /></AuthLayout>} />
     <Route path="/register" element={user ? <Navigate to="/companies" replace /> : <AuthLayout><Register /></AuthLayout>} />
     <Route path="/verify" element={<AuthLayout><Verify /></AuthLayout>} />
     <Route path="/forgot" element={<AuthLayout><Recovery key="forgot" /></AuthLayout>} />
     <Route path="/reset" element={<AuthLayout><Recovery key="reset" reset /></AuthLayout>} />
     <Route element={protectedWorkspace}>
+      <Route path="/" element={<WorkspaceHome />} />
       <Route path="/companies" element={<Directory />} />
       <Route path="/companies/new" element={<AddCompany />} />
       <Route path="/companies/:id" element={<Profile />} />
       <Route path="/membership/:id" element={<Membership />} />
       <Route path="/account-type/:id" element={<AccountType />} />
       <Route path="/complete/:id" element={<Complete />} />
-      <Route path="/dashboard/:id" element={<Dashboard />} />
+      <Route path="/dashboard/:id" element={<Dashboard />}>
+        <Route index element={<RecruitingOverview />} />
+        <Route path="jobs" element={<Jobs />} />
+        <Route path="jobs/new" element={<JobWizard />} />
+        <Route path="jobs/:jobId" element={<JobDetail />} />
+        <Route path="jobs/:jobId/edit" element={<JobWizard />} />
+        {['resume-library', 'ai-matching', 'referrals', 'analytics'].map(section =>
+          <Route path={section} key={section} element={<RecruitingMetricsPage section={section} />} />)}
+        <Route path="employees" element={<Employees />} />
+        <Route path="settings" element={<RecruitingSettings />} />
+      </Route>
       <Route path="/platform" element={<Platform />} />
     </Route>
     <Route path="*" element={<AuthLayout><Heading title="Page not found" /><Link to="/">Return home</Link></AuthLayout>} />

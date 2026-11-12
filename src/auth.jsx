@@ -14,7 +14,10 @@ export function Login({ onLogin }) {
       const result = await action.run(() => api('/auth/login', { method: 'POST', body: values }), error => {
         if (error.code === 'EMAIL_UNVERIFIED') navigate('/verify', { state: { email: values.email } });
       });
-      if (result) { onLogin(result.user); navigate('/companies'); }
+      if (result) {
+        onLogin(result.user);
+        navigate(/^\/dashboard\/[a-f0-9]{24}(?:\/|$)/i.test(state?.from || '') ? state.from : '/', { replace: true });
+      }
     }}>
       <Field label="Work email" name="email" type="email" autoComplete="username" defaultValue={state?.email} />
       <Field label="Password" name="password" type="password" autoComplete="current-password" />
