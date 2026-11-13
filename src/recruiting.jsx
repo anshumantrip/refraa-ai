@@ -1,5 +1,6 @@
 import { Link, NavLink, Outlet, useOutletContext, useParams } from 'react-router-dom';
 import { Heading, ResourceState, roleNames, useResource } from './ui.jsx';
+import { NoticeLink } from './referrals.jsx';
 
 const sections = [
   ['Overview', '', '◫'], ['Jobs', '/jobs', '▤'], ['Resume Library', '/resume-library', '▧'],
@@ -31,6 +32,7 @@ export function RecruitingWorkspace({ data, user }) {
       </div>
       <nav aria-label="Recruiting workspace">{sections.map(([label, path, icon]) =>
         <NavLink to={home + path} end={!path} key={label}><span aria-hidden="true">{icon}</span>{label}</NavLink>)}</nav>
+      <div className="quick-actions"><NoticeLink /></div>
     </aside>
     <div className="recruiting-content"><Outlet context={{ home, apiBase, data, user }} /></div>
   </div>;
@@ -81,8 +83,6 @@ export function RecruitingOverview() {
 }
 
 const sectionInfo = {
-  'resume-library': ['Resume Library', ['resumesUploaded'], 'Resume upload and management are planned for a later phase.'],
-  'ai-matching': ['AI Matching', ['candidatesProcessed', 'shortlistedCandidates'], 'Candidate matching is planned for a later phase.'],
   referrals: ['Referrals', ['pendingApprovals', 'completedReferrals'], 'Referral management is planned for a later phase.'],
   analytics: ['Analytics', metrics.map(([, key]) => key), 'Current totals for this organization.']
 };

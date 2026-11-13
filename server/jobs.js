@@ -22,7 +22,7 @@ const listingFields = 'title department location employmentType referralCount st
 const sortRecent = { updatedAt: -1, _id: -1 };
 const event = kind => ({ kind, at: new Date() });
 const withDepartment = configuration => ({ ...configuration, departmentKey: skillKey(configuration.department) });
-const escapePattern = value => value.replace(/[.*+?^$${}()|[\]\\]/g, '\\$&');
+const escapePattern = value => value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
 function jobView(job) {
   const { activity, departmentKey, ...item } = job.toObject();

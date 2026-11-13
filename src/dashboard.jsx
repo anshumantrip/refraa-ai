@@ -1,8 +1,9 @@
 import { useState } from 'react';
-import { Link, useOutletContext, useParams } from 'react-router-dom';
+import { Link, useLocation, useOutletContext, useParams } from 'react-router-dom';
 import { api } from './api.js';
 import { Field, Form, Heading, Notice, ResourceState, roleNames, Submit, useAction, useResource } from './ui.jsx';
 import { RecruitingWorkspace, useRecruitingWorkspace } from './recruiting.jsx';
+import { EmployeeOverview, EmployeeWorkspace, Referrals } from './referrals.jsx';
 
 function Requests({ base }) {
   const [revision, setRevision] = useState(0);
@@ -42,12 +43,22 @@ function Invite({ base }) {
 
 export function Dashboard() {
   const { id } = useParams();
+  const { pathname } = useLocation();
   const { user } = useOutletContext();
   const base = '/onboarding/organizations/' + id;
   const resource = useResource(base + '/dashboard');
   const data = resource.data;
   if (['company_admin', 'recruiter'].includes(data?.membership.role)) {
     return <RecruitingWorkspace data={data} user={user} />;
+  }
+  const root = '/dashboard/' + id;
+  const section = pathname.slice(root.length).split('/')[1];
+  if (data && ['referrals', 'opportunities', 'candidate', 'notifications'].includes(section)) {
+    return <EmployeeWorkspace data={data} user={user} />;
+  }
+  if (data && section) {
+    return <><Link className="back-link" to={'/dashboard/' + id}>← Dashboard</Link>
+      <Notice error="Recruiter or company administrator access is required." /></>;
   }
   return <>
     <Link className="back-link" to="/companies">← Company directory</Link>
@@ -57,6 +68,7 @@ export function Dashboard() {
       <div className="panel dashboard-summary"><h2>Membership</h2><Notice message="Your company membership is verified." />
         <dl><div><dt>Account type</dt><dd>{roleNames[data.membership.role]}</dd></div><div><dt>Verification</dt><dd>{({ domain: 'Work email domain', invitation: 'Company invitation', approval: 'Administrator approval' })[data.membership.method]}</dd></div></dl>
       </div>
+      <EmployeeWorkspace data={data} user={user}><div className="job-summary"><EmployeeOverview /><Referrals employee /></div></EmployeeWorkspace>
     </>}
   </>;
 }

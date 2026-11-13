@@ -4,3 +4,6 @@ dist/
 .env.*
 !.env.example
 coverage/
+__pycache__/
+.venv/
+database/verification_runs/

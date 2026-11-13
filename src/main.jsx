@@ -5,11 +5,17 @@ import { api } from './api.js';
 import { Login, Register, Verify, Recovery } from './auth.jsx';
 import { AccountType, AddCompany, Complete, Directory, Membership, Profile } from './onboarding.jsx';
 import { Dashboard, Employees, Platform } from './dashboard.jsx';
-import { RecruitingMetricsPage, RecruitingOverview, RecruitingSettings } from './recruiting.jsx';
+import { RecruitingOverview, RecruitingSettings } from './recruiting.jsx';
+import { Analytics, Notifications, Opportunities, Opportunity, ReferralDetail, ReferralProfile, Referrals } from './referrals.jsx';
 import { JobDetail, Jobs } from './jobs.jsx';
 import { JobWizard } from './job-wizard.jsx';
+import { MatchingHome, MatchingHistory, MatchingRunView } from './matching.jsx';
+import { ResumeLibrary, ResumeUpload, ResumeBatch, ResumeBatches, ResumeDetail } from './resume-library.jsx';
 import { AuthLayout, Brand, Heading, Notice, PageFocus, ResourceState, useAction, useResource } from './ui.jsx';
 import './style.css';
+import './recruiting.css';
+import './resumes.css';
+import './matching.css';
 
 function Workspace({ user, logout }) {
   const action = useAction();
@@ -53,7 +59,7 @@ function App() {
   const protectedWorkspace = user ? <Workspace user={user} logout={() => setSession({})} /> :
     <Navigate to="/login" replace state={{ from: location.pathname }} />;
   return <><PageFocus /><Routes>
-    <Route path="/login" element={user ? <Navigate to="/" replace /> :
+    <Route path="/login" element={user ? <Navigate to={/^\/dashboard\/[a-f0-9]{24}(?:\/|$)/i.test(location.state?.from || '') ? location.state.from : '/'} replace /> :
       <AuthLayout><Login onLogin={user => setSession({ user })} /></AuthLayout>} />
     <Route path="/register" element={user ? <Navigate to="/companies" replace /> : <AuthLayout><Register /></AuthLayout>} />
     <Route path="/verify" element={<AuthLayout><Verify /></AuthLayout>} />
@@ -73,8 +79,21 @@ function App() {
         <Route path="jobs/new" element={<JobWizard />} />
         <Route path="jobs/:jobId" element={<JobDetail />} />
         <Route path="jobs/:jobId/edit" element={<JobWizard />} />
-        {['resume-library', 'ai-matching', 'referrals', 'analytics'].map(section =>
-          <Route path={section} key={section} element={<RecruitingMetricsPage section={section} />} />)}
+        <Route path="resume-library" element={<ResumeLibrary />} />
+        <Route path="resume-library/upload" element={<ResumeUpload />} />
+        <Route path="resume-library/batches" element={<ResumeBatches />} />
+        <Route path="resume-library/batches/:batchId" element={<ResumeBatch />} />
+        <Route path="resume-library/files/:resumeId" element={<ResumeDetail />} />
+        <Route path="ai-matching" element={<MatchingHome />} />
+        <Route path="ai-matching/jobs/:jobId" element={<MatchingHistory />} />
+        <Route path="ai-matching/runs/:runId" element={<MatchingRunView />} />
+        <Route path="referrals" element={<Referrals />} />
+        <Route path="referrals/:referralId" element={<ReferralDetail />} />
+        <Route path="candidate/:runId/:candidateId" element={<ReferralProfile />} />
+        <Route path="opportunities" element={<Opportunities />} />
+        <Route path="opportunities/:jobId" element={<Opportunity />} />
+        <Route path="notifications" element={<Notifications />} />
+        <Route path="analytics" element={<Analytics />} />
         <Route path="employees" element={<Employees />} />
         <Route path="settings" element={<RecruitingSettings />} />
       </Route>

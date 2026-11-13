@@ -1,0 +1,18 @@
+.resume-drop { display:grid; gap:10px; padding:24px; border:1px dashed #7467a2; border-radius:10px; text-align:center; }
+.resume-drop:focus-within { outline:2px solid var(--focus); }
+.resume-row, .resume-file-list li, .resume-file-row { display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px; }
+.resume-file-list { max-height:300px; overflow:auto; display:grid; gap:6px; }
+.resume-file-list li { padding:7px; border-bottom:1px solid var(--border); overflow-wrap:anywhere; }
+.resume-progress { display:grid; gap:12px; }
+.resume-progress label, .resume-file-row small { display:block; }
+.resume-progress progress, .resume-file-row progress { display:block; width:100%; margin-top:5px; accent-color:#b8aaff; }
+.resume-counts { display:grid; grid-template-columns:repeat(auto-fit,minmax(100px,1fr)); gap:8px; }
+.resume-counts div { border:1px solid var(--border); padding:8px; border-radius:8px; }
+.resume-counts small, .resume-counts strong { display:block; }
+.resume-counts small { color:var(--muted); }
+.resume-counts strong { font-size:1.3rem; }
+.resume-batch-actions { margin:14px 0; }
+.resume-file-row > div { min-width:0; overflow-wrap:anywhere; }
+.resume-evidence { display:grid; gap:8px; overflow-wrap:anywhere; }
+.resume-evidence summary { color:var(--accent); cursor:pointer; font-size:.85rem; }
+.resume-evidence details p { color:var(--muted); font-size:.85rem; }

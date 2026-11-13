@@ -33,7 +33,7 @@ export function Jobs() {
       setParams(next);
     }}>
       <Field label="Job title"><input type="search" name="q" placeholder="Search job titles" maxLength={120} defaultValue={q} /></Field>
-      <Field label="Status"><select name="status" defaultValue={status}><option value="">All statuses</option>
+      <Field label="Status"><select aria-label="Status" name="status" defaultValue={status}><option value="">All statuses</option>
         {jobStatuses.map(value => <option key={value} value={value}>{jobStatusLabel[value]}</option>)}</select></Field>
       <Field label="Department"><input name="department" defaultValue={department} list="job-departments"
         placeholder="All departments" maxLength={120} /></Field>

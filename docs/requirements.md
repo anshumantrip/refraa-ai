@@ -61,7 +61,7 @@ The source specification does not define accepted formats, size limits, extracti
 - Active scoring weights must total exactly 100% before scoring can use that configuration.
 - “Top N” candidate results must contain only candidates that meet the system’s suitability criteria. If fewer than N candidates are suitable, return fewer than N rather than padding the result with unsuitable candidates.
 
-The source specification does not define the scoring formula, evidence schema, suitability thresholds, tie-breaking, or how Experience and CGPA interact with configurable weights. Those details must be specified before they are relied on for production decisions.
+Phase 2 defines default weights and how the Experience and CGPA switches affect them. The resume scoring formula, evidence schema, suitability thresholds, and tie-breaking remain open.
 
 ## 6. Referrals and Human Oversight
 
@@ -110,7 +110,7 @@ A release satisfies the explicit requirements when:
 The project brief and engineering instructions supplied the initial requirements. The Phase 1 specification below resolves access and onboarding decisions. Before implementing other unspecified product behavior, extend this document with confirmed decisions for:
 
 - Resume formats, file limits, extraction fields, and lifecycle/retention.
-- Matching and scoring formula, weight categories, evidence representation, and suitability threshold.
+- Resume matching formula, evidence representation, and suitability threshold. Phase 2 defines the default weights and toggle behavior.
 - Top N configuration and filtering rules beyond the explicit suitability constraint.
 - Referral states, approval authority, audit trail, and notifications.
 - Privacy, consent, deletion, encryption, compliance, and data residency.
@@ -126,3 +126,33 @@ The project brief and engineering instructions supplied the initial requirements
 - Enforce Super Admin, Company Admin, Recruiter, and Employee / Referrer permissions on the backend. Company domains grant employee access. Recruiter access requires an invitation or administrator approval. Only a trusted operator grants administrator roles.
 - Deliver responsive React and Tailwind screens for sign-in, registration, verification, password recovery, company directory and profiles, company submission, membership verification, account type, onboarding completion, and each role's dashboard.
 - Verify the full path from registration and email OTP through sign-in, company selection, membership verification, authorized role selection, and the dashboard.
+
+## 12. Phase 2 Recruiter Dashboard and Job Management
+
+- Provide a responsive recruiting dashboard for verified Recruiters and Company Admins. Fetch counts, recent jobs, and job activity within the current organization. A published job counts as active. Resume, candidate, and referral counters display zero when there are no matching records.
+- Provide a seven-step wizard for job details, skills, experience, CGPA, additional criteria, referral count, and review. Title and description are required. Required and preferred skills support optional proficiency and evidence, with duplicate names rejected across both lists.
+- Persist experience and CGPA settings independently. Turning a criterion off hides its inputs and excludes it from scoring and eligibility. Turning it back on restores the saved values. Validate CGPA within the selected 4-point, 10-point, or percentage scale. Do not convert scores between scales.
+- Support projects, internships, certifications, domain knowledge, technical proficiency, and job-specific requirements with mandatory, preferred, or informational priority.
+- Default the desired referral count to 3 and accept integers from 1 to 100. The eventual shortlist may contain fewer candidates when fewer are suitable.
+- Support draft saving, publishing, editing, and confirmed archiving. List jobs by organization with title search, status and department filters, and pagination. Archive retains job history and prevents further edits.
+- Normalize the default weights of 40% required skills, 20% preferred skills, 15% experience, 10% CGPA, and 15% projects. Exclude disabled criteria and allocate rounded weights in basis points so the active total equals exactly 100%.
+- Resume ingestion, candidate matching, and referral workflows are outside Phase 2. The dashboard may read existing organization records for their counters.
+
+## 13. Phase 3 Resume Upload and Processing
+
+- Accept up to 1,000 PDF and DOCX files per batch, with configurable size limits, job association, progress, cancellation, retry, and batch history.
+- Require a verified recruiting role and organization scope for every upload, query, review, and download. Store originals privately and use a dedicated BullMQ worker for processing.
+- Validate file signatures, preserve source text and evidence, and extract structured candidate fields. Missing values remain unknown. Files without readable PDF text require OCR.
+- Detect exact duplicates by SHA-256 within the tenant. Review potential duplicates by shared email or phone. Link earlier versions explicitly and retain their original documents.
+- Keep processing status in MongoDB, bound retries, recover interrupted work, and record failures per file. Provide configurable retention, administrator deletion, audit metadata, and optional ClamAV scanning.
+- Semantic matching and candidate ranking are reserved for Phase 4.
+
+## 14. Phase 4 Matching
+
+- Use local Sentence Transformers embeddings, deterministic eligibility rules, normalized active weights, and persisted matching runs. Exclude unsupported qualifications and return up to the configured number of suitable candidates.
+
+## 15. Phase 5 Referrals and Analytics
+
+- Allow verified employees to prepare and track their own referrals for shortlisted candidates on published jobs. Restrict contact data, original resumes, and organization-wide analytics to recruiting roles.
+- Record human approval and review history before recording submission. Enforce independent review by default and retain status history for auditing. Support referral application and analytics CSV exports.
+- Persist in-app notifications, reconcile events after interruptions, and retry opted-in email delivery through the configured provider.

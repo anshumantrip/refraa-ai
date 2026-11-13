@@ -1,5 +1,6 @@
 import express from 'express';
 import helmet from 'helmet';
+import mongoose from 'mongoose';
 import path from 'node:path';
 import { existsSync } from 'node:fs';
 import { sessionSecurity, authRoutes } from './auth.js';
@@ -9,8 +10,11 @@ import { createMailer } from './mail.js';
 import { HttpError } from './http.js';
 import { jobRoutes } from './jobs.js';
 import { recruitingDashboardRoutes } from './recruiting-dashboard.js';
+import { resumeRoutes } from './resumes/routes.js';
+import { matchingRoutes } from './matching/routes.js';
+import { referralRoutes } from './referrals/routes.js';
 
-export function createApp(config, mailer = createMailer(config)) {
+export function createApp(config, mailer = createMailer(config), resumeServices = {}) {
   const app = express();
   app.disable('x-powered-by');
   app.set('trust proxy', config.proxy || false);
@@ -28,8 +32,20 @@ export function createApp(config, mailer = createMailer(config)) {
   api.use(security.csrf);
   api.use('/organizations/:id/jobs', security.requireUser, express.json({ limit: '128kb' }), jobRoutes());
   api.use('/organizations/:id/recruiting-dashboard', security.requireUser, recruitingDashboardRoutes());
+  api.use('/organizations/:id/resumes', security.requireUser, resumeRoutes(config, resumeServices.config, resumeServices.storage));
+  api.use('/organizations/:id/matching', security.requireUser, matchingRoutes(config));
+  api.use('/organizations/:id/referrals', security.requireUser, referralRoutes(config, resumeServices.storage));
   api.use(express.json({ limit: '16kb' }));
   api.get('/health', (req, res) => res.json({ status: 'ok' }));
+  api.get('/ready', async (req, res) => {
+    try {
+      if (mongoose.connection.readyState !== 1) throw new Error('Database unavailable');
+      await mongoose.connection.db.command({ ping: 1 }, { timeoutMS: 2000 });
+      res.json({ status: 'ready' });
+    } catch {
+      res.status(503).json({ status: 'unavailable' });
+    }
+  });
   api.use('/auth', authRoutes(config, mailer, security));
   api.use('/companies', security.requireUser, companyRoutes(config));
   api.use('/onboarding', security.requireUser, onboardingRoutes(config, mailer));

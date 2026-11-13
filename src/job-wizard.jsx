@@ -23,7 +23,7 @@ function NumericField({ label, value, onChange, ...props }) {
 }
 
 function Choice({ label, value, options, onChange, placeholder }) {
-  return <Field label={label}><select value={value} onChange={event => onChange(event.target.value)}>
+  return <Field label={label}><select aria-label={label} value={value} onChange={event => onChange(event.target.value)}>
     {placeholder && <option value="">{placeholder}</option>}
     {options.map(option => <option key={option}>{option}</option>)}
   </select></Field>;
@@ -115,7 +115,7 @@ function Cgpa({ value, onChange }) {
   return <>
     <Toggle label="CGPA" enabled={value.enabled} onChange={enabled => set('enabled', enabled)} />
     {value.enabled && <div className="job-fields">
-      <Field label="CGPA scale"><select value={value.scale} onChange={event => set('scale', event.target.value)}>
+      <Field label="CGPA scale"><select aria-label="CGPA scale" value={value.scale} onChange={event => set('scale', event.target.value)}>
         <option value="4">4-point</option><option value="10">10-point</option><option value="percentage">Percentage</option>
       </select></Field>
       <Choice label="Applicable education level" value={value.educationLevel} options={educationLevels}
